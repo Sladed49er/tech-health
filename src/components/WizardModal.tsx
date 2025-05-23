@@ -21,17 +21,17 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 
 export default function WizardModal() {
-  /* ── dialog state ─────────────────────────── */
-  const [open, setOpen] = useState(false);
+  /* ───────────────────────────────── dialog state */
+  const [open, setOpen] = useState(true); // opens immediately
   const [step, setStep] = useState(0);
 
-  /* scroll-to-top ref */
+  /* scroll to top when step changes */
   const contentRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     contentRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [step]);
 
-  /* ── react-hook-form ──────────────────────── */
+  /* ──────────────────────────────── React-Hook-Form */
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -41,7 +41,6 @@ export default function WizardModal() {
       website: "",
       contactEmail: "",
       staffCount: 0,
-
       /* step-2 */
       officeSuite: "o365",
       officeSuiteOther: "",
@@ -51,7 +50,6 @@ export default function WizardModal() {
       raterOther: "",
       itSolution: "msp",
       itProvider: "",
-
       /* step-3 */
       isp: "",
       ispSecondary: "",
@@ -71,6 +69,7 @@ export default function WizardModal() {
     },
   });
 
+  /* step-1 gate */
   const step1Ready =
     form.watch("agencyName") &&
     form.watch("contactName") &&
@@ -81,6 +80,7 @@ export default function WizardModal() {
   const next = () => setStep((s) => s + 1);
   const back = () => setStep((s) => s - 1);
 
+  /* ──────────────────────────────── submit handler */
   async function onSubmit(data: FormData) {
     const body = new FormData();
     Object.entries(data).forEach(([k, v]) => {
@@ -95,65 +95,51 @@ export default function WizardModal() {
     window.open(pdfUrl, "_blank");
   }
 
-  /* ── render ───────────────────────────────── */
+  /* ─────────────────────────────────────── render */
   return (
-    <>
-      {/* launch card */}
-      <button
-        onClick={() => setOpen(true)}
-        className="rounded-xl border-2 border-gray-200 bg-white p-8 text-center shadow hover:shadow-lg"
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent
+        ref={contentRef}
+        className="max-w-xl max-h-[90vh] overflow-y-auto"
       >
-        <div className="mb-3 text-5xl">🛠️</div>
-        <h3 className="mb-1 text-xl font-bold">Technology&nbsp;Checkup</h3>
-        <p className="text-sm text-gray-600">
-          Complimentary audit → instant PDF
-        </p>
-      </button>
+        <DialogHeader>
+          <DialogTitle>
+            {["Agency basics", "Systems & compliance", "Connectivity"][step]}
+          </DialogTitle>
+        </DialogHeader>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent
-          ref={contentRef}
-          className="max-w-xl max-h-[90vh] overflow-y-auto"
-        >
-          <DialogHeader>
-            <DialogTitle>
-              {["Agency basics", "Systems & compliance", "Connectivity"][step]}
-            </DialogTitle>
-          </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {step === 0 && <Step1 form={form} />}
+            {step === 1 && <Step2 form={form} />}
+            {step === 2 && <Step3 form={form} />}
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {step === 0 && <Step1 form={form} />}
-              {step === 1 && <Step2 form={form} />}
-              {step === 2 && <Step3 form={form} />}
+            <div className="mt-6 flex justify-between">
+              {step > 0 ? (
+                <Button type="button" variant="secondary" onClick={back}>
+                  Back
+                </Button>
+              ) : (
+                <span />
+              )}
 
-              <div className="mt-6 flex justify-between">
-                {step > 0 ? (
-                  <Button type="button" variant="secondary" onClick={back}>
-                    Back
-                  </Button>
-                ) : (
-                  <span />
-                )}
-
-                {step < 2 ? (
-                  <Button
-                    type="button"
-                    onClick={next}
-                    disabled={step === 0 && !step1Ready}
-                  >
-                    Next
-                  </Button>
-                ) : (
-                  <Button type="submit" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting ? "Submitting…" : "Finish"}
-                  </Button>
-                )}
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </>
+              {step < 2 ? (
+                <Button
+                  type="button"
+                  onClick={next}
+                  disabled={step === 0 && !step1Ready}
+                >
+                  Next
+                </Button>
+              ) : (
+                <Button type="submit" disabled={form.formState.isSubmitting}>
+                  {form.formState.isSubmitting ? "Submitting…" : "Finish"}
+                </Button>
+              )}
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }
