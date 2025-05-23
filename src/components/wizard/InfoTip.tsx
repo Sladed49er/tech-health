@@ -1,20 +1,22 @@
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+"use client";
 import { Info } from "lucide-react";
+import * as Popover from "@radix-ui/react-popover";
+import { ReactNode } from "react";
 
-export default function InfoTip({ text }: { text: string }) {
+export default function InfoTip({ text }: { text: ReactNode }) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          tabIndex={-1}
-          aria-hidden="true"
-          className="ml-1 inline-flex h-4 w-4 items-center justify-center text-muted-foreground"
+    <Popover.Root>
+      <Popover.Trigger asChild>
+        <Info className="ml-1 inline h-4 w-4 cursor-help text-neutral-500" />
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          sideOffset={4}
+          className="max-w-xs rounded border border-neutral-300 bg-white p-2 text-sm text-black shadow"
         >
-          <Info className="h-4 w-4" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 text-sm">{text}</PopoverContent>
-    </Popover>
+          {text}
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
